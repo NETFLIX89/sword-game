@@ -19,6 +19,18 @@ Section:NewToggle("auto collect raid ticket", "", function (state)
                 }
                 
                 game:GetService("ReplicatedStorage").Packages.Knit.Services.ChestService.RF.ClaimChest:InvokeServer(unpack(args))
+
+                local args = {
+                    [1] = "Free Ticket 2"
+                }
+                
+                game:GetService("ReplicatedStorage").Packages.Knit.Services.ChestService.RF.ClaimChest:InvokeServer(unpack(args))
+
+                local args = {
+                    [1] = "Free Ticket 3"
+                }
+                
+                game:GetService("ReplicatedStorage").Packages.Knit.Services.ChestService.RF.ClaimChest:InvokeServer(unpack(args))
                 wait(60)
             end
             
