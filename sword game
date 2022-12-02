@@ -39,6 +39,20 @@ Section:NewToggle("auto collect raid ticket", "", function (state)
     
 end)
 
+Section:NewToggle("auto raid", "", function (state)
+    getgenv().SecondEgg = state
+    if state then
+        task.spawn(function ()
+            while getgenv().SecondEgg and wait () do            
+                game:GetService("ReplicatedStorage").Packages.Knit.Services.RaidService.RF.JoinRaid:InvokeServer()
+                wait(60)
+            end
+            
+        end)
+    end
+    
+end)
+
 local Tab = Window:NewTab("Settings")
 local Section = Tab:NewSection("Settings")
 
