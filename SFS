@@ -1,0 +1,293 @@
+getgenv().autoTap = false
+getgenv().autoEgg = false
+getgenv().walkSpeed = false
+getgenv().autoAscend = false
+getgenv().auto_kill = false
+getgenv().find_nearest_npc = false
+getgenv().auto_kill = false
+getgenv().selected_mob = false
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
+
+
+local Window = Rayfield:CreateWindow({
+	Name = "Sword Fighting Simulator by NETFLIX",
+	LoadingTitle = "Sword Fighting Simulator",
+	LoadingSubtitle = "Sword Fighting Simulator by NETFLIX",
+	ConfigurationSaving = {
+		Enabled = true,
+		FolderName = Farming, -- Create a custom folder for your hub/game
+		FileName = ""
+	},
+        Discord = {
+        	Enabled = false,
+        	Invite = "", -- The Discord invite code, do not include discord.gg/
+        	RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+        },
+	
+})
+local Tab = Window:CreateTab("Main", 4483362458)
+local Section = Tab:CreateSection("Farming")
+local Toggle = Tab:CreateToggle({
+	Name = "Auto Click",
+	CurrentValue = false,
+	Flag = "Auto Click", 
+	Callback = function(Value)
+		getgenv().autoTap = Value
+        if Value then
+        doTap()
+	end
+end
+})
+
+function doTap()
+    spawn(function()
+        while getgenv().autoTap == true do
+            game:GetService("ReplicatedStorage").Packages.Knit.Services.ClickService.RF.Click:InvokeServer()
+            wait()
+        end 
+    end)
+end
+
+local Toggle = Tab:CreateToggle({
+
+    Name = "Auto Ascend",
+    CurrentValue = false,
+    Flag = "Auto Ascend", 
+    Callback = function(Value)
+        getgenv().autoAscend = Value
+        if Value then
+        autoAscend()
+    end
+end
+})
+
+function autoAscend()
+    spawn(function()
+        while getgenv().autoAscend == true do
+            game:GetService("ReplicatedStorage").Packages.Knit.Services.AscendService.RF.Ascend:InvokeServer()
+            wait(10)
+        end 
+    end)
+end
+
+local Tab = Window:CreateTab("Auto Kill Mobs", 4483362458)
+local Section = Tab:CreateSection("Auto Kill")
+
+-- Create a table to store the names of the NPCs in the Workspace
+local mob_table = {}
+
+-- Populate the mob_table with the names of the NPCs
+for _, NPC in pairs(game:GetService("Workspace").Live.NPCs:GetChildren()) do
+    table.insert(mob_table, NPC.Name)
+end
+
+-- Create a dropdown menu that allows the user to select a mob to kill
+local dropdown = Tab:CreateDropdown({
+    Name = "Mob To Kill",
+    Options = mob_table,
+    CurrentOption = "",
+    Flag = "Mob To Kill",
+    Callback = function(option)
+        -- Set the selected_mob global variable to the selected option
+        getgenv().selected_mob = option
+    end
+})
+
+-- Create a toggle button to start/stop the auto kill function
+local toggle = Tab:CreateToggle({
+    Name = "Auto Kill Selected Mob",
+    CurrentValue = false,
+    Flag = "Auto Kill Selected Mob",
+    Callback = function(value)
+        -- Set the auto_kill global variable to the current value of the toggle button
+        getgenv().auto_kill = value
+        if value then
+            start_auto_kill()
+        end
+    end
+})
+
+-- Define the start_auto_kill function
+function start_auto_kill()
+    -- Start a new coroutine to continuously try to kill the selected mob
+    spawn(function()
+        while true do
+            -- Find the NPC with the matching name in the Workspace
+            for _, NPC in pairs(game:GetService("Workspace").Resources.NPCSpawns.Normal:GetChildren()) do
+                if NPC.Name == getgenv().selected_mob then
+                    -- Set the player's character's position to the NPC's position
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = NPC.HumanoidRootPart.CFrame
+                    wait(1)
+                    break
+                end
+            end
+        end
+    end)
+end
+
+local Section = Tab:CreateSection("Auto Kill Near")
+local Toggle = Tab:CreateToggle({
+	Name = "Teleport(Optional)",
+	CurrentValue = false,
+	Flag = "Teleport(Optional)", 
+	Callback = function(Value)
+		getgenv().find_nearest_npc = Value
+        if Value then
+            find_nearest_npc()
+	end
+end
+})
+
+
+    function find_nearest_npc()
+
+        local nearest_distance = math.huge
+    
+        local nearest_npc
+    
+        local ray = Ray.new(game.Players.LocalPlayer.Character.Head.Position, game.Players.LocalPlayer.Character.Head.CFrame.LookVector)
+    
+        local objects = game:GetService("Workspace").Live.NPCs.Client:GetChildren()
+    
+        for _, object in pairs(objects) do
+                local distance = (object.HumanoidRootPart.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+    
+                if distance < nearest_distance then
+                    nearest_distance = distance
+                    nearest_npc = object
+            end
+
+                end
+            end
+        
+    
+    function teleport_to_nearest_npc()
+        
+        local nearest_npc = find_nearest_npc()
+    
+        if nearest_npc then
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = nearest_npc.HumanoidRootPart.CFrame
+            wait(1)
+        end
+    end
+
+
+
+local Toggle = Tab:CreateToggle({
+	Name = "Auto kill Near",
+	CurrentValue = false,
+	Flag = "Auto kill Near", 
+	Callback = function(Value)
+		getgenv().auto_kill = Value
+        if Value then
+            spawn(function()
+                while getgenv().auto_kill do
+                  local mobsFolder = game:GetService("Workspace").Live.NPCs.Client
+                  local lp = game.Players.LocalPlayer
+                  local rep = game.ReplicatedStorage
+                  local function findClosestNPC() 
+                    local closest = nil
+                    local dist = math.huge
+                    pcall(function()
+                      for i,v in pairs(mobsFolder:GetChildren()) do
+                        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
+                          local mag = (v.HumanoidRootPart.Position - lp.Character.HumanoidRootPart.Position).Magnitude
+                          if mag < dist then
+                            dist = mag
+                            closest = v
+                          end
+                        end
+                      end
+                    end)
+                    if dist < 50 then
+                      return closest
+                    end
+                    return nil
+                  end
+                  local npc = findClosestNPC()
+                  if npc then
+                    rep.Packages.Knit.Services.ClickService.RF.Click:InvokeServer(npc.Name)
+                  else
+                    rep.Packages.Knit.Services.ClickService.RF.Click:InvokeServer()
+                  end
+                  wait()
+                end
+              end)
+            end
+          end
+        })
+
+
+local Tab = Window:CreateTab("Eggs", 4483362458)
+    local Dropdown = Tab:CreateDropdown({
+        Name = "Select Egg to Open",
+        Options = {"Egg 1","Egg 2", "Egg 3", "Egg 4", "Egg 5", "Egg 6", "Egg 7", "Egg 8", "Egg 9", "Egg 10", "Egg 11", "Egg 12", "Egg 13", "Egg 14", "Egg 15", "Egg 16", "Egg 17",},
+        CurrentOption = " ",
+        Flag = "eggsdrop", 
+        Callback = function(Option)
+            getgenv().eggtoopen = Option; 
+        end,
+    })
+
+    local Toggle = Tab:CreateToggle({
+        Name = "Auto Open Egg",
+        CurrentValue = false,
+        Flag = "autoegg", 
+        Callback = function(Value)
+            getgenv().autoegg = Value; 
+        end,
+    })
+    
+    task.spawn(function() 
+        while wait() do 
+            if getgenv().autoegg then 
+                local args = {
+                    [1] = {
+                        ["eggName"] = getgenv().eggtoopen,
+                        ["auto"] = false,
+                        ["amount"] = 4
+                    }
+                }
+                game:GetService("ReplicatedStorage").Packages.Knit.Services.EggService.RF.BuyEgg:InvokeServer(unpack(args))
+                wait()
+            end
+        end
+    end)
+
+
+
+
+
+
+
+local Tab = Window:CreateTab("Misc", 4483362458)
+local Section = Tab:CreateSection("Misc")
+local Toggle = Tab:CreateToggle({
+    Name = "Toggle WalkSpeed",
+    CurrentValue = false,
+    Flag = "Toggle1", 
+    Callback = function(Value)
+        getgenv().ChangeWalkSpeed = Value
+    end,
+})
+
+local Slider = Tab:CreateSlider({
+    Name = "Change WalkSpeed",
+    Range = {50, 500},
+    Increment = 10,
+    Suffix = "Speed",
+    CurrentValue = 10,
+    Flag = "Slider1", 
+    Callback = function(Value)
+        getgenv().walkSpeed = Value
+    end,
+})
+
+task.spawn(function()
+    while wait() do 
+        if getgenv().walkSpeed ~= nil and getgenv().ChangeWalkSpeed then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = getgenv().walkSpeed
+        end
+    end
+end)
+    
